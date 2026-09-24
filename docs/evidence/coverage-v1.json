@@ -1,0 +1,16 @@
+{
+  "replicates": 40,
+  "optimizer_converged": 38,
+  "valid_hessians": 38,
+  "nominal_coverage": 0.95,
+  "nu_coverage": 1.0,
+  "nu_wilson95": [0.908190131774416, 1.0],
+  "alpha_coverage": 0.9736842105263158,
+  "alpha_wilson95": [0.8650512388404787, 0.9953394123142312],
+  "joint_coverage": 0.9736842105263158,
+  "joint_wilson95": [0.8650512388404787, 0.9953394123142312],
+  "truth": {"nu": 0.035, "alpha": 0.12},
+  "wall_seconds": 498.760964901,
+  "method": "Observed-Hessian Laplace/Wald intervals in log parameters",
+  "limitation": "Finite repeated-data deterministic study; not MCMC or stochastic-model interval coverage."
+}

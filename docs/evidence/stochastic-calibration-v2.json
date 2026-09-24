@@ -1,0 +1,17 @@
+{
+  "generating_parameters": {"nu": 0.03, "alpha": 0.1, "sigma": 0.2, "tau": 0.5},
+  "fit": {"nu": 0.04697705913529842, "alpha": 0.034980237327514624, "sigma": 0.27704141770582269, "tau": 0.27020262537413564},
+  "converged": false,
+  "reason": "iteration limit",
+  "independent_log_likelihood_mean": 4.2611887251851455,
+  "independent_log_likelihood_sd": 4.3050398781336501,
+  "paired_improvement_mean": 29.775607554415142,
+  "paired_improvement_standard_error": 6.4097694132184513,
+  "independently_improved": true,
+  "particles": 24,
+  "objective_replicates": 2,
+  "starts": 3,
+  "independent_checks": 8,
+  "wall_seconds": 281.63849029099998,
+  "conclusion": "Improves on the initial point but does not reliably recover all four generating parameters."
+}

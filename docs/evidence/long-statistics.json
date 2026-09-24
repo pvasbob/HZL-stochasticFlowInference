@@ -1,0 +1,43 @@
+{
+  "source": "results/long-stochastic",
+  "start_time": 49.99999999999862,
+  "end_time": 199.99999999996308,
+  "records": 1501,
+  "diagnostic_spacing": 0.0999999999999801,
+  "scope": "Finite-record estimates conditional on approximate stationarity; no stationarity or confidence-interval coverage claim.",
+  "energy": {
+    "mean": 2.1864080087498956,
+    "standard_deviation": 0.6176256683994564,
+    "estimated_effective_samples": 35.405238825232,
+    "estimated_mean_standard_error": 0.10379861836277907,
+    "integrated_correlation_time": 4.239485595363346
+  },
+  "enstrophy": {
+    "mean": 11.091212126310017,
+    "standard_deviation": 3.066566438034967,
+    "estimated_effective_samples": 35.170150413939965,
+    "estimated_mean_standard_error": 0.5170889598057276,
+    "integrated_correlation_time": 4.267823658225721
+  },
+  "dissipation": {
+    "mean": 0.22182424252620037,
+    "standard_deviation": 0.06133132876069934,
+    "estimated_effective_samples": 35.17015041393997,
+    "estimated_mean_standard_error": 0.010341779196114552,
+    "integrated_correlation_time": 4.267823658225721
+  },
+  "injection": {
+    "mean": 0.6566902329180014,
+    "standard_deviation": 0.5738201203155834,
+    "estimated_effective_samples": 148.09078652286502,
+    "estimated_mean_standard_error": 0.04715326311973928,
+    "integrated_correlation_time": 1.0135674441623341
+  },
+  "energy_budget": {
+    "observed_mean_derivative": -0.0011331991838211843,
+    "trapezoidal_mean_rhs": -0.0021460432501274893,
+    "residual": 0.001012844066306305,
+    "scope": "Uses saved endpoint forcing and diagnostic cadence; includes sampling quadrature and time-discretization errors."
+  },
+  "complete_blocks": 7
+}

@@ -1,0 +1,7 @@
+{
+  "retained_chains": 4,
+  "retained_draws_per_chain": 2000,
+  "nu": {"rank_normalized_split_rhat": 1.0056388496870254, "bulk_ess": 1100.0559291141717, "tail_ess": 1171.382262715497, "mean_mcse": 0.000051556789253730655},
+  "alpha": {"rank_normalized_split_rhat": 1.0059735258828282, "bulk_ess": 1139.6069213719366, "tail_ess": 1487.2345613284822, "mean_mcse": 0.0002101231930762658},
+  "qualification": "Screening diagnostics, not proof of convergence."
+}

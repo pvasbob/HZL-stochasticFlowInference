@@ -1,0 +1,9 @@
+{
+  "enkf_forecast": {"baseline_rmse": 0.24345896013979687, "inflation_1_02_rmse": 0.24238606697612117, "localization_radius_4_rmse": 0.25322983802911403, "localization_radius_8_rmse": 0.24594817790643078, "scope": "One trajectory; exploratory tuning."},
+  "rom_maximum_relative_error": {"training_parameters": 0.02899292185, "half_viscosity": 0.0274819, "double_viscosity": 0.071739, "half_friction": 0.0451092, "double_friction": 0.123883},
+  "surrogate": {"quadratic_interpolation_rmse": 0.8503150415027937, "rbf_interpolation_rmse": 0.39661480746015493, "quadratic_extrapolation_rmse": 22.095735664203556, "rbf_extrapolation_rmse": 115.5471584961266, "delayed_acceptance_exact_evaluations": 235, "proposals": 1000},
+  "cuda_ensemble": {"grid": 64, "steps": 100, "members": [1, 4, 16], "gpu_total_seconds": [0.238218358, 0.420159627, 0.72574694], "cpu_six_worker_seconds": [0.434747726, 0.409937038, 1.240018876], "maximum_relative_energy_error": 3.1982293065449275e-16, "scope": "Separate resident solvers; sequential member launches."},
+  "rare_event": {"threshold": 0.14, "horizon": 2.0, "splitting_mean": 0.04847125796748619, "splitting_standard_error": 0.010326772019487986, "splitting_replicates": 8, "direct_hits": 41, "direct_count": 1024, "direct_probability": 0.0400390625, "direct_wilson95": [0.029650034605617378, 0.053866210126508274]},
+  "antithetic_parameters": {"full_solves_per_method": 256, "raw_standard_error": 0.026262650989518153, "antithetic_standard_error": 0.0061194531765445884, "estimated_variance_ratio": 18.41839965484055},
+  "mpi": {"source_added": true, "compiled": false, "reason": "No MPI C++ compiler/runtime installed locally."}
+}

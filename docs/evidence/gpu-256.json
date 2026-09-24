@@ -1,0 +1,16 @@
+{
+  "n": 256,
+  "steps": 100,
+  "dt": 0.005,
+  "nu": 0.001,
+  "alpha": 0.1,
+  "sigma": 0,
+  "cpu_evolution_seconds": 7.9998376579999997,
+  "gpu_setup_and_upload_seconds": 0.35261160699999999,
+  "gpu_evolution_including_cfl_transfers_seconds": 0.071544961000000004,
+  "gpu_final_download_seconds": 0.00037057099999999999,
+  "gpu_total_seconds": 0.424527249,
+  "cpu_evolution_over_gpu_total": 18.844108774746754,
+  "evolution_ratio": 111.81552895108852,
+  "relative_l2_error": 1.3997386954062655e-16
+}

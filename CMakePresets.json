@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {"name":"release","generator":"Unix Makefiles","binaryDir":"${sourceDir}/build/release","cacheVariables":{"CMAKE_BUILD_TYPE":"Release"}},
+    {"name":"debug","inherits":"release","binaryDir":"${sourceDir}/build/debug","cacheVariables":{"CMAKE_BUILD_TYPE":"Debug","HZL_SANITIZERS":"ON"}},
+    {"name":"cuda","inherits":"release","binaryDir":"${sourceDir}/build/cuda","cacheVariables":{"HZL_CUDA":"ON","CMAKE_CUDA_COMPILER":"/usr/local/cuda/bin/nvcc"}}
+  ],
+  "buildPresets": [{"name":"release","configurePreset":"release"},{"name":"debug","configurePreset":"debug"},{"name":"cuda","configurePreset":"cuda"}],
+  "testPresets": [{"name":"release","configurePreset":"release","output":{"outputOnFailure":true}},{"name":"debug","configurePreset":"debug","output":{"outputOnFailure":true}}]
+}

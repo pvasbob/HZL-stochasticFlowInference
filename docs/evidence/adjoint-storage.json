@@ -1,0 +1,1 @@
+{"tangent_seconds":0.080050940000000001,"adjoint_seconds":0.085869659000000001,"checkpoint_stride":20,"checkpoint_fields":6,"peak_replay_block_fields":21,"replayed_steps":200,"storage_note":"field counts exclude solver and RK4 workspaces"}

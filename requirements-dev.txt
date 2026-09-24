@@ -1,0 +1,2 @@
+-r requirements-analysis.txt
+clang-format>=18,<19

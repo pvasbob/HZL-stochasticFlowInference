@@ -1,0 +1,1604 @@
+# High-Performance Stochastic Turbulence Calibration Engine
+
+## Project Mission
+
+Build a production-oriented, high-performance C++20/CUDA platform for simulating stochastically forced turbulence, calibrating unknown model parameters from sparse noisy observations, reconstructing hidden flow states, quantifying uncertainty through Bayesian inference, and generating probabilistic predictions.
+
+The project must combine:
+
+* Computational fluid dynamics
+* Stochastic processes
+* Numerical optimization
+* Statistical calibration
+* Bayesian inference
+* Monte Carlo simulation
+* Sensitivity analysis
+* State estimation
+* Reduced-order modeling
+* Surrogate modeling
+* Rare-event estimation
+* Modern C++ software engineering
+* CPU, GPU, and distributed high-performance computing
+* Numerical, statistical, and performance validation
+
+The primary physical application is two-dimensional incompressible turbulence in a periodic domain. However, an important purpose of the project is to develop the mathematical, statistical, numerical, and C++ engineering skills required for a Quantitative C++ Engineer position in finance.
+
+The project should deliberately incorporate methods commonly used in quantitative finance whenever they have a valid mathematical or scientific role in stochastic turbulence. It should not avoid a technique merely because it is associated with finance.
+
+The governing principle is:
+
+> Use as many methods relevant to financial quantitative C++ engineering as possible, provided each method has a legitimate mathematical, statistical, computational, or software-engineering role in the turbulence project.
+
+The finished system should be a genuine fluid-dynamics project and a comprehensive quantitative-computing platform.
+
+---
+
+# Why This Project Was Selected
+
+Among fluid-dynamics projects, stochastic turbulence calibration most closely resembles the computational workflow of an advanced financial quantitative-modeling system.
+
+A conventional CFD program answers:
+
+> Given physical parameters and initial conditions, how does the fluid evolve?
+
+This project asks a more difficult quantitative question:
+
+> Given incomplete and noisy observations of a turbulent system, what parameters and hidden states most likely generated the observations, how uncertain are those estimates, and what probability distribution describes future behavior?
+
+The central workflow is:
+
+$$
+\boxed{
+\text{observations}
+\rightarrow
+\text{mathematical model}
+\rightarrow
+\text{calibration}
+\rightarrow
+\text{sensitivity}
+\rightarrow
+\text{Bayesian inference}
+\rightarrow
+\text{uncertainty propagation}
+\rightarrow
+\text{probabilistic prediction}
+}
+$$
+
+This resembles quantitative financial model development because both domains require:
+
+* Translating mathematical equations into reliable C++
+* Calibrating models against noisy observations
+* Working with hidden stochastic states
+* Estimating uncertain parameters
+* Calculating sensitivities
+* Running large scenario ensembles
+* Constructing reduced or surrogate models
+* Estimating tail probabilities
+* Optimizing repeated model evaluations
+* Validating numerical and statistical results
+
+The conceptual correspondence is:
+
+| Quantitative finance concept         | Turbulence project equivalent                 |
+| ------------------------------------ | --------------------------------------------- |
+| Mathematical pricing or market model | Stochastic Navier–Stokes model                |
+| Hidden market factors                | Unobserved turbulent modes                    |
+| Volatility or stochastic intensity   | Turbulence and forcing intensity              |
+| Mean-reverting factor                | Ornstein–Uhlenbeck forcing mode               |
+| Market observations                  | Sparse velocity or vorticity observations     |
+| Model calibration                    | Estimation of physical and forcing parameters |
+| Scenario generation                  | Turbulence ensemble simulation                |
+| Financial sensitivities              | Sensitivities of energy and dissipation       |
+| Tail-loss probability                | Extreme-dissipation probability               |
+| Pricing surrogate                    | Reduced-order turbulence model                |
+| Bayesian parameter posterior         | Posterior distribution of physical parameters |
+| Sequential model update              | Flow-state update as observations arrive      |
+| Stress testing                       | Extreme forcing and parameter scenarios       |
+| Parallel scenario engine             | CPU, CUDA, and MPI ensemble execution         |
+
+---
+
+# Scope Principle
+
+The project does not need to hide its relationship to quantitative finance. Its application is fluid dynamics, but its architecture should intentionally exercise techniques used by financial quantitative developers.
+
+Domain-independent finance methods should be included whenever they fit the turbulence problem, including:
+
+* Stochastic differential equations
+* Factor models
+* Mean-reverting processes
+* Correlated Brownian motion
+* Maximum-likelihood estimation
+* Bayesian calibration
+* Monte Carlo simulation
+* Quasi-Monte Carlo
+* Multilevel Monte Carlo
+* Antithetic variates
+* Control variates
+* Importance sampling
+* Tail-probability estimation
+* Sensitivity calculations
+* Automatic differentiation
+* Adjoint differentiation
+* Gradient-based optimization
+* Constrained calibration
+* State-space models
+* Kalman and particle filtering
+* Time-series analysis
+* Regime detection
+* Scenario generation
+* Stress testing
+* Surrogate models
+* Probabilistic forecasting
+* High-performance parallel evaluation
+
+Purely market-specific components should be omitted when they do not have a coherent role. For example, an exchange protocol, order book, portfolio-accounting system, or trading execution strategy would not contribute meaningfully to the turbulence problem.
+
+Every included method must solve a real problem involving turbulence simulation, calibration, inference, forecasting, sensitivity, uncertainty, tail behavior, or computational performance.
+
+---
+
+# Physical Problem
+
+Model statistically stationary, stochastically forced, two-dimensional incompressible turbulence in a square periodic domain:
+
+$$
+\Omega=[0,2\pi]\times[0,2\pi].
+$$
+
+Periodic boundary conditions apply in both directions.
+
+The system continuously receives energy through stochastic forcing. Nonlinear interactions transfer energy between spatial scales. Viscosity removes energy at small scales, while large-scale friction controls energy accumulation at large scales.
+
+A periodic domain is preferred because it provides:
+
+* A fundamental fluid-physics problem
+* No application-specific geometry
+* No mesh-generation problem
+* Clean Fourier representations
+* Efficient spectral differentiation
+* Efficient FFT-based computation
+* Natural statistical homogeneity
+* Straightforward CPU and CUDA acceleration
+
+The engine must determine how the statistical behavior of the turbulent system depends on unknown physical and stochastic parameters.
+
+---
+
+# Governing Equations
+
+The incompressible Navier–Stokes equations are:
+
+$$
+\frac{\partial\mathbf u}{\partial t}
++
+(\mathbf u\cdot\nabla)\mathbf u
+=
+-\nabla p
++
+\nu\nabla^2\mathbf u
+-
+\alpha\mathbf u
++
+\mathbf f(\mathbf x,t),
+$$
+
+subject to:
+
+$$
+\nabla\cdot\mathbf u=0.
+$$
+
+Here:
+
+* \(\mathbf u(\mathbf x,t)\) is velocity.
+* \(p(\mathbf x,t)\) is pressure.
+* \(\nu\) is kinematic viscosity.
+* \(\alpha\) is large-scale linear friction.
+* \(\mathbf f(\mathbf x,t)\) is stochastic forcing.
+
+For the two-dimensional periodic implementation, use the vorticity-streamfunction formulation:
+
+$$
+\frac{\partial\omega}{\partial t}
++
+\mathbf u\cdot\nabla\omega
+=
+\nu\nabla^2\omega
+-
+\alpha\omega
++
+f_\omega.
+$$
+
+The streamfunction satisfies:
+
+$$
+\nabla^2\psi=-\omega.
+$$
+
+Velocity is reconstructed using:
+
+$$
+u=\frac{\partial\psi}{\partial y},
+\qquad
+v=-\frac{\partial\psi}{\partial x}.
+$$
+
+This removes pressure from the primary evolution equation and permits an efficient Fourier-space Poisson solution.
+
+---
+
+# Stochastic Forcing Model
+
+The forcing must have a precise mathematical definition. It should not be arbitrary independent noise added to every grid point.
+
+Use band-limited stochastic forcing acting on a selected Fourier wave-number shell:
+
+$$
+k_{\min}\leq |\mathbf k|\leq k_{\max}.
+$$
+
+The forcing amplitudes may follow Ornstein–Uhlenbeck processes:
+
+$$
+dF_{\mathbf k}
+=
+-\frac{1}{\tau_f}F_{\mathbf k}\,dt
++
+\sigma_f\,dW_{\mathbf k}.
+$$
+
+Here:
+
+* \(\sigma_f\) controls forcing intensity.
+* \(\tau_f\) controls temporal correlation.
+* \(W_{\mathbf k}\) represents Wiener processes.
+* The forcing exhibits mean reversion and correlated stochastic evolution.
+
+The forcing implementation must:
+
+* Preserve conjugate symmetry for real physical fields
+* Support deterministic seeding
+* Support independent parallel random streams
+* Reproduce expected stationary variance
+* Reproduce expected autocorrelation
+* Allow configurable spatial and temporal correlation
+
+Optional extensions may support correlated forcing modes and non-Gaussian shocks when they have a clear physical interpretation.
+
+---
+
+# Unknown Parameters
+
+The initial calibration target should be a continuous parameter vector such as:
+
+$$
+\theta=
+(\nu,\alpha,\sigma_f,\tau_f).
+$$
+
+Possible later parameters include:
+
+* Spatial forcing correlation length
+* Observation-noise variance
+* Model-discrepancy parameters
+* Reduced-order closure coefficients
+* Initial reduced-state coefficients
+* Cross-correlation parameters between stochastic modes
+
+Parameters constrained to be positive should use bound constraints or transformations:
+
+$$
+\nu=e^{q_\nu},
+\qquad
+\alpha=e^{q_\alpha},
+\qquad
+\sigma_f=e^{q_\sigma},
+\qquad
+\tau_f=e^{q_\tau}.
+$$
+
+Discrete model choices, such as the forcing wave-number shell, should initially remain configuration values rather than differentiable calibration parameters.
+
+---
+
+# Full-Order Turbulence Solver
+
+The full-order reference model should use a pseudo-spectral discretization.
+
+It should include:
+
+* Fourier representation of vorticity
+* Forward and inverse FFTs
+* Spectral spatial derivatives
+* Fourier-space Poisson solution
+* Velocity reconstruction
+* Physical-space nonlinear advection
+* \(2/3\) dealiasing
+* Stable time integration
+* CFL stability monitoring
+* Configurable grid resolution
+* Configurable simulation duration
+* Checkpoint and restart
+* Physical and spectral diagnostics
+
+Potential time integrators include:
+
+* Explicit Runge–Kutta
+* Semi-implicit Runge–Kutta
+* Integrating-factor methods
+* Exponential time differencing
+
+The selected method must be justified through stability, accuracy, and performance analysis.
+
+---
+
+# Physical and Statistical Observables
+
+The engine should calculate the following quantities.
+
+## Kinetic Energy
+
+$$
+E(t)
+=
+\frac12
+\int_\Omega
+|\mathbf u(\mathbf x,t)|^2\,d\mathbf x.
+$$
+
+## Enstrophy
+
+$$
+Z(t)
+=
+\frac12
+\int_\Omega
+\omega(\mathbf x,t)^2\,d\mathbf x.
+$$
+
+## Energy Dissipation
+
+$$
+\varepsilon(t)
+=
+\nu
+\int_\Omega
+|\nabla\mathbf u|^2\,d\mathbf x.
+$$
+
+## Energy Spectrum
+
+$$
+E(k),
+$$
+
+computed by grouping Fourier modes into wave-number shells.
+
+## Additional Statistics
+
+Support:
+
+* Mean energy and enstrophy
+* Variance of energy and enstrophy
+* Dissipation distributions
+* Vorticity distributions
+* Autocorrelation functions
+* Cross-correlation functions
+* Integral correlation times
+* Power spectral densities
+* Structure functions
+* Quantiles
+* Extreme-event frequencies
+* Threshold-crossing times
+
+These observables should serve as calibration targets, validation metrics, forecast outputs, and rare-event quantities.
+
+---
+
+# Synthetic Observation System
+
+The project should support controlled synthetic-data experiments.
+
+A reference simulation should run with a hidden parameter vector:
+
+$$
+\theta_{\text{true}}.
+$$
+
+Observations are generated through:
+
+$$
+y_k
+=
+H_k(q(t_k;\theta_{\text{true}}))
++
+\epsilon_k,
+$$
+
+where:
+
+* \(q\) is the full or reduced fluid state.
+* \(H_k\) is an observation operator.
+* \(\epsilon_k\) is measurement noise.
+
+Observations may include:
+
+* Sparse velocity probes
+* Sparse vorticity probes
+* Global kinetic energy
+* Global enstrophy
+* Dissipation
+* Energy-spectrum bins
+* Autocorrelation statistics
+* Irregularly sampled time-series data
+
+The observation system should support:
+
+* Gaussian noise
+* Heteroscedastic uncertainty
+* Correlated measurement noise
+* Missing observations
+* Irregular timestamps
+* Configurable outliers
+* Separate calibration and validation periods
+
+The calibration engine must not have direct access to the hidden parameter values.
+
+---
+
+# Calibration Objective
+
+The objective may combine local observations and global statistical properties:
+
+$$
+J(\theta)
+=
+w_sJ_{\text{sensor}}
++
+w_eJ_{\text{energy}}
++
+w_zJ_{\text{enstrophy}}
++
+w_pJ_{\text{spectrum}}
++
+w_cJ_{\text{correlation}}
++
+\lambda R(\theta).
+$$
+
+A weighted sensor objective is:
+
+$$
+J_{\text{sensor}}
+=
+\frac12
+\sum_k
+\left[
+H_kq(t_k;\theta)-y_k
+\right]^T
+R_k^{-1}
+\left[
+H_kq(t_k;\theta)-y_k
+\right].
+$$
+
+A spectral objective is:
+
+$$
+J_{\text{spectrum}}
+=
+\sum_j
+w_j
+\left[
+E_{\text{model}}(k_j;\theta)
+-
+E_{\text{observed}}(k_j)
+\right]^2.
+$$
+
+The calibration system should support:
+
+* Weighted least squares
+* Negative log likelihood
+* Maximum-likelihood estimation
+* Maximum a posteriori estimation
+* Regularization
+* Parameter constraints
+* Parameter transformations
+* Multiple initial guesses
+* Held-out validation
+* Residual analysis
+* Identifiability analysis
+
+Optimization convergence must not automatically be interpreted as successful physical parameter recovery.
+
+---
+
+# Numerical Optimization
+
+Support and compare relevant optimization methods:
+
+* Grid search for low-dimensional verification
+* Random search
+* Brent or golden-section search
+* Nelder–Mead
+* Gradient descent with line search
+* Nonlinear conjugate gradient
+* Gauss–Newton
+* Levenberg–Marquardt
+* BFGS
+* L-BFGS
+* Trust-region methods
+* Bound-constrained optimization
+* Multi-start optimization
+* Global-search followed by local refinement
+
+At least one meaningful optimization algorithm should be implemented internally. Established libraries may also be used for production calculations and independent validation.
+
+Expose:
+
+* Objective history
+* Parameter history
+* Gradient norms
+* Step sizes
+* Function-evaluation counts
+* Convergence reasons
+* Failure reasons
+* Runtime
+* Accuracy against hidden parameters
+
+---
+
+# Sensitivity Analysis and Differentiation
+
+The project should calculate how outputs and objectives respond to parameter changes.
+
+Examples include:
+
+$$
+\frac{\partial\mathbb E[E]}{\partial\nu},
+\qquad
+\frac{\partial\mathbb E[Z]}{\partial\alpha},
+\qquad
+\frac{\partial P(\varepsilon>\varepsilon_c)}
+{\partial\sigma_f}.
+$$
+
+Support and compare the following approaches.
+
+## Finite Differences
+
+$$
+\frac{\partial J}{\partial\theta_i}
+\approx
+\frac{
+J(\theta+h\mathbf e_i)-J(\theta-h\mathbf e_i)
+}{
+2h
+}.
+$$
+
+Study truncation and cancellation errors as the step size changes.
+
+## Forward Sensitivities
+
+Differentiate the model equations with respect to individual parameters.
+
+## Automatic Differentiation
+
+Use an appropriate C++ automatic-differentiation library for compatible model components.
+
+## Adjoint Differentiation
+
+For:
+
+$$
+F(q,\theta)=0,
+$$
+
+with objective \(J(q,\theta)\), solve:
+
+$$
+\left(
+\frac{\partial F}{\partial q}
+\right)^T\lambda
+=
+-
+\left(
+\frac{\partial J}{\partial q}
+\right)^T.
+$$
+
+Then calculate:
+
+$$
+\frac{dJ}{d\theta}
+=
+\frac{\partial J}{\partial\theta}
++
+\lambda^T
+\frac{\partial F}{\partial\theta}.
+$$
+
+The engine should compare:
+
+* Gradient accuracy
+* Runtime
+* Memory requirements
+* Scaling with parameter count
+
+Gradient checking is mandatory before gradients are used in calibration or Hamiltonian Monte Carlo.
+
+---
+
+# Probability and Statistics
+
+Probability and statistics are core project components.
+
+The project should cover:
+
+* Random variables
+* Probability distributions
+* Expectations and variance
+* Covariance and correlation
+* Conditional probability
+* Likelihood functions
+* Maximum-likelihood estimation
+* Confidence intervals
+* Credible intervals
+* Bootstrap resampling
+* Bias and variance
+* Statistical convergence
+* Autocorrelation
+* Effective sample size
+* Model-selection criteria where appropriate
+* Calibration and validation separation
+
+The system should report statistical uncertainty rather than only point estimates.
+
+---
+
+# Bayesian Inference
+
+Bayesian inference is a central feature.
+
+For observations \(y\) and parameters \(\theta\):
+
+$$
+p(\theta\mid y)
+\propto
+p(y\mid\theta)p(\theta).
+$$
+
+Support:
+
+* Configurable prior distributions
+* Gaussian and extensible observation likelihoods
+* Log-likelihood evaluation
+* Log-prior evaluation
+* Log-posterior evaluation
+* Maximum a posteriori estimation
+* Posterior sampling
+* Posterior predictive simulation
+
+Sampling methods should include:
+
+* Random-walk Metropolis–Hastings
+* Adaptive Metropolis
+* Hamiltonian Monte Carlo
+* Multiple independent chains
+
+An optional advanced extension may include the No-U-Turn Sampler.
+
+Diagnostics should include:
+
+* Acceptance rate
+* Trace plots
+* Burn-in assessment
+* Autocorrelation
+* Integrated autocorrelation time
+* Effective sample size
+* Gelman–Rubin \(\hat R\)
+* Marginal posteriors
+* Joint posteriors
+* Posterior covariance
+* Posterior correlation
+* Credible intervals
+* Posterior predictive checks
+
+Posterior samples should be propagated through the model to produce uncertainty distributions for energy, enstrophy, spectra, correlations, and extreme-event probabilities.
+
+---
+
+# Hidden-State Estimation and Data Assimilation
+
+Sparse sensors do not reveal the complete turbulent state. The engine should therefore support hidden-state reconstruction.
+
+Use the state-space formulation:
+
+$$
+x_{n+1}
+=
+f(x_n,\theta)+\eta_n,
+$$
+
+$$
+y_n
+=
+H_nx_n+\epsilon_n.
+$$
+
+Support methods such as:
+
+* Linear Kalman filter for simplified reduced models
+* Extended Kalman filter
+* Ensemble Kalman filter
+* Particle filter
+* Optional smoothing methods
+
+Evaluate:
+
+* State-reconstruction accuracy
+* Forecast accuracy
+* Filter stability
+* Sensitivity to observation frequency
+* Sensitivity to observation noise
+* Computational cost
+
+---
+
+# Stochastic Factor Model
+
+The reduced turbulence modes should be treated as stochastic factors.
+
+After proper orthogonal decomposition, represent the flow as:
+
+$$
+q(\mathbf x,t)
+\approx
+\bar q(\mathbf x)
++
+\sum_{i=1}^{r}
+a_i(t)\phi_i(\mathbf x).
+$$
+
+The modal coefficients may evolve according to:
+
+$$
+d\mathbf a_t
+=
+b(\mathbf a_t,\theta)\,dt
++
+G(\mathbf a_t,\theta)\,d\mathbf W_t.
+$$
+
+This provides experience with:
+
+* Multidimensional SDEs
+* Drift and diffusion
+* Mean reversion
+* Correlated Brownian motion
+* Latent factors
+* State-dependent noise
+* Parameter calibration
+* Scenario generation
+* Probabilistic forecasting
+
+This component should be implemented as a legitimate reduced-order turbulence model while deliberately exercising methods used in financial stochastic-factor modeling.
+
+---
+
+# Time-Series Analysis and Forecasting
+
+Treat sensor measurements, modal coefficients, energy, enstrophy, dissipation, and forcing amplitudes as time series.
+
+Support:
+
+* Timestamped observations
+* Resampling
+* Missing-data handling
+* Autocorrelation
+* Cross-correlation
+* Power spectral density
+* Rolling statistics
+* Regime detection
+* Short-term forecasting
+* Probabilistic forecasting
+* Forecast intervals
+* Forecast-horizon analysis
+
+Distinguish:
+
+* Short-term state prediction
+* Long-term statistical prediction
+* Parameter uncertainty
+* Initial-condition uncertainty
+* Stochastic-forcing uncertainty
+* Model uncertainty
+* Numerical uncertainty
+
+The project should not claim indefinite deterministic predictability for chaotic turbulence.
+
+---
+
+# Monte Carlo Simulation
+
+Monte Carlo simulation should propagate uncertainty through the turbulence model.
+
+Support:
+
+* Independent turbulence realizations
+* Parameter sampling
+* Posterior predictive sampling
+* Scenario generation
+* Batched simulation
+* Running statistics
+* Standard-error estimation
+* Confidence intervals
+* Convergence monitoring
+* Reproducible random streams
+
+Outputs should include distributions of:
+
+* Kinetic energy
+* Enstrophy
+* Dissipation
+* Spectral energy
+* Correlation time
+* Extreme-event frequency
+* Threshold-crossing time
+
+---
+
+# Variance Reduction
+
+Implement and benchmark advanced variance-reduction methods.
+
+## Antithetic Variates
+
+Use paired stochastic inputs when they produce negatively correlated estimators.
+
+## Control Variates
+
+Use a reduced-order, coarse-resolution, or analytically simplified model as a control variate:
+
+$$
+\hat\mu_{\text{cv}}
+=
+\hat\mu_Q
+-
+\beta
+\left(
+\hat\mu_C-\mathbb E[C]
+\right).
+$$
+
+Estimate:
+
+$$
+\beta^*
+=
+\frac{\operatorname{Cov}(Q,C)}
+{\operatorname{Var}(C)}.
+$$
+
+## Importance Sampling
+
+Bias forcing paths or reduced dynamics toward important rare events, then correct with likelihood weights.
+
+## Stratified Sampling
+
+Partition relevant parameter or stochastic spaces into strata.
+
+## Latin Hypercube Sampling
+
+Use structured sampling for parameter uncertainty studies.
+
+## Quasi-Monte Carlo
+
+Support:
+
+* Sobol sequences
+* Scrambling
+* Transformation to target distributions
+* Error comparison with pseudorandom Monte Carlo
+
+## Multilevel Monte Carlo
+
+Use a hierarchy of spatial resolutions or model fidelities:
+
+$$
+\mathbb E[Q_L]
+=
+\mathbb E[Q_0]
++
+\sum_{\ell=1}^{L}
+\mathbb E[Q_\ell-Q_{\ell-1}].
+$$
+
+Coarse and fine simulations should share correlated stochastic inputs.
+
+Compare all methods by:
+
+* Estimator error
+* Variance
+* Bias
+* Runtime
+* Memory use
+* Effective speedup
+
+---
+
+# Rare-Event and Tail Analysis
+
+Estimate physically meaningful tail probabilities such as:
+
+$$
+P\left(
+\max_{0\leq t\leq T}\varepsilon(t)
+>
+\varepsilon_{\text{critical}}
+\right).
+$$
+
+Additional targets may include:
+
+* Extreme enstrophy
+* Extreme vorticity
+* Large energy-transfer events
+* Threshold-crossing times
+* First-passage events in reduced space
+* Extreme forcing-response combinations
+
+Potential methods include:
+
+* Importance sampling
+* Weighted trajectory simulation
+* Trajectory splitting
+* Subset simulation
+* Extreme-value modeling
+* Multilevel rare-event methods
+
+All tail estimators must include uncertainty estimates and comparison with direct Monte Carlo whenever feasible.
+
+---
+
+# Scenario Analysis and Stress Testing
+
+The platform should support controlled scenario experiments analogous to quantitative stress testing.
+
+Possible scenarios include:
+
+* Increased forcing intensity
+* Reduced viscosity
+* Reduced friction
+* Longer forcing correlation
+* Correlated forcing shocks
+* Perturbed initial conditions
+* Model-parameter combinations near unstable regimes
+* Observation-system failure
+* Missing sensors
+* Increased measurement noise
+* Reduced-order model mismatch
+
+The system should calculate how these scenarios affect:
+
+* Mean energy
+* Mean enstrophy
+* Dissipation distribution
+* Extreme-event probability
+* Forecast uncertainty
+* Parameter-estimation accuracy
+* Calibration stability
+
+---
+
+# Reduced-Order Modeling
+
+Build a reduced-order representation to accelerate calibration, inference, filtering, and uncertainty propagation.
+
+Collect snapshots:
+
+$$
+X=
+\begin{bmatrix}
+| & | & & |\\
+q_1 & q_2 & \cdots & q_N\\
+| & | & & |
+\end{bmatrix}.
+$$
+
+Apply singular-value decomposition:
+
+$$
+X=U\Sigma V^T.
+$$
+
+Construct a POD approximation:
+
+$$
+q(\mathbf x,t)
+\approx
+\bar q(\mathbf x)
++
+\sum_{i=1}^{r}
+a_i(t)\phi_i(\mathbf x).
+$$
+
+Support:
+
+* Snapshot collection
+* Mean subtraction
+* SVD
+* Energy-based mode selection
+* POD basis construction
+* Projection
+* Reconstruction
+* Galerkin evolution
+* Closure modeling
+* Stability correction
+* Full-order versus reduced-order validation
+
+The reduced model must be validated over parameter regions used for calibration and inference.
+
+---
+
+# Surrogate Modeling
+
+Support fast approximations for expensive model evaluations.
+
+Possible methods include:
+
+* Polynomial response surfaces
+* Radial-basis interpolation
+* Gaussian-process regression
+* Small neural networks
+* Neural operators as an optional extension
+
+Surrogates may predict:
+
+* Calibration objectives
+* Statistical observables
+* Reduced-state evolution
+* Parameter-to-spectrum mappings
+* Rare-event probabilities
+
+Evaluate:
+
+* Training error
+* Held-out error
+* Extrapolation failure
+* Prediction uncertainty
+* Speedup
+* Calibration bias
+* Posterior bias
+
+For Bayesian inference, optionally implement delayed-acceptance MCMC:
+
+1. Evaluate a proposal with the inexpensive surrogate.
+2. Reject clearly poor proposals early.
+3. Evaluate promising proposals using the full model.
+4. Apply a correction that preserves the intended posterior.
+
+---
+
+# Modern C++20 Engineering
+
+Implement the system as a maintainable numerical platform rather than a single research script.
+
+Relevant C++ capabilities include:
+
+* RAII
+* Clear ownership
+* Value semantics
+* Move semantics
+* Smart pointers where ownership requires them
+* Templates
+* Concepts
+* Generic numerical interfaces
+* Strong parameter types
+* `std::span`
+* `std::optional`
+* `std::variant`
+* `std::expected` where supported
+* Standard containers and algorithms
+* Const correctness
+* Exception-safe resource management
+* Explicit error handling
+* Modular API design
+
+Separate:
+
+* Physical models
+* Numerical solvers
+* Stochastic processes
+* Observation operators
+* Objective functions
+* Optimizers
+* Differentiation methods
+* Bayesian samplers
+* Filters
+* Reduced-order models
+* Execution backends
+* Diagnostics
+* Input and output
+
+Language features should solve real design problems rather than being included only to appear advanced.
+
+---
+
+# Numerical Linear Algebra
+
+Exercise:
+
+* Dense and sparse matrices
+* Matrix-vector products
+* BLAS and LAPACK
+* LU decomposition
+* QR decomposition
+* Cholesky decomposition
+* SVD
+* Eigenvalue problems
+* Iterative solvers
+* Preconditioning
+* Covariance matrices
+* Low-rank approximations
+* Condition-number analysis
+* FFTW
+* cuFFT
+
+External libraries may be used when appropriate, but their numerical assumptions and performance characteristics must be understood.
+
+---
+
+# CPU Parallelism
+
+Support:
+
+* Multithreaded ensemble simulations
+* Parallel objective evaluations
+* Parallel multi-start calibration
+* Parallel Monte Carlo
+* Multiple Bayesian chains
+* Task-based execution
+* Thread pools
+* Thread-local random streams
+* Low-contention aggregation
+* Cancellation where practical
+* Deterministic execution modes
+* Scaling benchmarks
+
+Distinguish between latency, throughput, parallel efficiency, and synchronization overhead.
+
+---
+
+# CUDA Acceleration
+
+The GPU backend should accelerate expensive computations such as:
+
+* Forward and inverse FFTs
+* Spectral differentiation
+* Nonlinear advection
+* Dealiasing
+* Time integration
+* Batched ensemble simulations
+* Objective reductions
+* Energy and enstrophy calculations
+* Statistical aggregation
+* Reduced-order ensembles
+* Batched parameter evaluation
+
+Relevant CUDA methods include:
+
+* Kernel design
+* Thread, block, and grid organization
+* Coalesced memory access
+* Shared memory
+* Constant memory where appropriate
+* Parallel reductions
+* cuFFT
+* cuBLAS
+* cuRAND
+* CUDA streams
+* Asynchronous execution
+* Pinned host memory where useful
+* Mixed-precision experiments
+* GPU profiling
+
+CPU and GPU results should be compared using scientifically justified tolerances.
+
+---
+
+# Distributed Computing
+
+MPI may distribute:
+
+* Parameter sweeps
+* Monte Carlo ensembles
+* Bayesian chains
+* Multi-start optimization
+* Multilevel sampling
+* Posterior predictive simulations
+
+Support:
+
+* Work partitioning
+* Result aggregation
+* Load balancing
+* Checkpointing
+* Restart after interruption
+* Reproducible distributed random streams
+* Strong scaling
+* Weak scaling
+
+---
+
+# Performance Engineering
+
+The project should demonstrate:
+
+* Algorithmic-complexity analysis
+* Memory-layout decisions
+* Structure of Arrays versus Array of Structures
+* Cache-efficiency analysis
+* SIMD/vectorization
+* Allocation reduction
+* FFT planning and reuse
+* CPU profiling
+* GPU profiling
+* Memory-bandwidth analysis
+* Kernel occupancy analysis
+* Communication overhead
+* Precision-versus-performance tradeoffs
+* Latency-versus-throughput analysis
+* Benchmark regression detection
+
+Optimization claims must be supported by reproducible measurements.
+
+---
+
+# Data Management
+
+Support:
+
+* YAML or JSON configuration
+* CSV summaries
+* HDF5 fields and trajectories
+* Dataset schemas
+* Metadata
+* Parameter records
+* Random seeds
+* Build information
+* Version information
+* Experiment identifiers
+* Time-indexed observations
+* Missing values
+* Data validation
+* Reproducible preprocessing
+
+Every result should contain enough metadata to reproduce the experiment.
+
+---
+
+# Production and Reliability Features
+
+Include:
+
+* Command-line interface
+* Configuration validation
+* Structured logging
+* Checkpoint and restart
+* Deterministic seeds
+* Error categories
+* Performance counters
+* Profiling hooks
+* CMake
+* CMake presets
+* Dependency management
+* Continuous integration
+* Static analysis
+* Address sanitizer
+* Undefined-behavior sanitizer
+* Thread sanitizer where practical
+* API documentation
+* Mathematical documentation
+* Benchmark regression monitoring
+
+---
+
+# Testing Requirements
+
+## Unit Tests
+
+Test:
+
+* Fourier indexing
+* Spectral wave numbers
+* Transform normalization
+* Dealiasing masks
+* Poisson inversion
+* Velocity reconstruction
+* Random forcing
+* Parameter transformations
+* Observation operators
+* Objective functions
+* Probability distributions
+* Gradient components
+* Statistical aggregation
+
+## Numerical Verification
+
+Use:
+
+* Manufactured solutions
+* Taylor–Green vortex
+* Decaying two-dimensional turbulence
+* Linear diffusion modes
+* Deterministic zero-forcing limits
+* Energy and enstrophy balances
+
+Measure:
+
+* Spatial convergence
+* Temporal convergence
+* Conservation error
+* Solver residuals
+* Float-versus-double behavior
+
+## Statistical Tests
+
+Verify:
+
+* Random-number moments
+* Forcing covariance
+* Ornstein–Uhlenbeck stationary variance
+* Autocorrelation time
+* Monte Carlo standard errors
+* Confidence-interval coverage
+* Variance-reduction effectiveness
+* Posterior recovery
+* MCMC convergence
+
+Statistical tests should use sampling-based tolerances rather than exact equality.
+
+## Calibration Tests
+
+Test:
+
+* Recovery of hidden parameters
+* Sensitivity to observation noise
+* Sensitivity to initial guesses
+* Missing observations
+* Correlated parameters
+* Identifiability limitations
+* Held-out prediction
+* Model mismatch
+
+## CPU and GPU Consistency
+
+Compare:
+
+* Flow statistics
+* Energy spectra
+* Objective values
+* Parameter estimates
+* Ensemble means
+* Ensemble variances
+* Statistical distributions
+
+## Performance Tests
+
+Measure:
+
+* Runtime
+* Memory consumption
+* FFT throughput
+* Simulation throughput
+* Calibration evaluations per second
+* CPU scaling
+* GPU speedup
+* MPI scaling
+* Reduced-model speedup
+* Surrogate speedup
+* Performance regressions
+
+---
+
+# Verification and Validation Philosophy
+
+Distinguish:
+
+* Code verification: whether the equations are implemented correctly
+* Numerical verification: whether discretization converges
+* Statistical verification: whether stochastic estimators behave correctly
+* Model validation: whether predictions match unseen observations
+* Calibration validation: whether inferred parameters generalize
+* Performance validation: whether acceleration claims are measured
+
+Successful execution and attractive images are not sufficient evidence of correctness.
+
+---
+
+# Visualization and Reporting
+
+Visualization should support the scientific analysis without becoming the project’s central contribution.
+
+Produce:
+
+* Vorticity fields
+* Velocity fields
+* Streamfunction fields
+* Energy spectra
+* Energy and enstrophy time series
+* Sensor locations
+* Observed versus predicted data
+* Calibration convergence
+* True versus recovered parameters
+* Posterior distributions
+* Posterior correlations
+* MCMC traces
+* Forecast uncertainty bands
+* POD modes
+* Full-order versus reduced-order comparisons
+* Monte Carlo convergence
+* Variance-reduction comparisons
+* CPU and GPU benchmarks
+* Scaling plots
+* Profiling results
+
+Python may be used for plotting and independent analysis. The primary numerical engine should remain C++ and CUDA.
+
+---
+
+# Expected End-to-End Demonstration
+
+The completed system should demonstrate the following story:
+
+1. A full-order stochastic turbulence simulation runs with a hidden reference parameter set.
+2. Sparse noisy observations are generated.
+3. Calibration begins from deliberately inaccurate parameters.
+4. The optimizer reduces the objective and recovers plausible parameters.
+5. The calibrated model reproduces held-out statistics.
+6. Sensitivity methods produce mutually consistent gradients.
+7. Bayesian inference produces posterior distributions and credible intervals.
+8. Hidden-state estimation reconstructs unobserved turbulent modes.
+9. Posterior predictive simulations quantify forecast uncertainty.
+10. A reduced-order model accelerates repeated evaluations.
+11. Variance reduction improves Monte Carlo efficiency.
+12. Rare-event methods estimate extreme dissipation probabilities.
+13. Stress scenarios demonstrate parameter and forcing sensitivity.
+14. CPU and GPU implementations agree within justified tolerances.
+15. Benchmarks demonstrate the value of parallel execution.
+
+---
+
+# Required Evidence
+
+The repository should contain measured evidence, including:
+
+* Governing-equation documentation
+* Numerical-method derivations
+* Convergence studies
+* Verification results
+* Calibration histories
+* True-versus-recovered parameter tables
+* Held-out validation results
+* Residual diagnostics
+* Gradient-comparison results
+* Posterior parameter plots
+* Posterior predictive distributions
+* MCMC diagnostics
+* State-reconstruction results
+* Energy-spectrum comparisons
+* Full-order versus reduced-order comparisons
+* Monte Carlo error plots
+* Variance-reduction tables
+* Rare-event estimates with uncertainty
+* CPU and GPU benchmarks
+* Scaling plots
+* Profiling results
+* Limitations and failure cases
+
+Do not invent performance or accuracy values. All final claims must come from reproducible experiments.
+
+---
+
+# Core Skills Demonstrated
+
+The completed project should demonstrate:
+
+* Advanced C++20
+* Production numerical-software architecture
+* Mathematical-model implementation
+* Computational fluid dynamics
+* Spectral numerical methods
+* FFT-based computation
+* Numerical stability and convergence
+* Numerical linear algebra
+* Stochastic processes
+* Stochastic differential equations
+* Stochastic factor models
+* Probability and statistics
+* Time-series analysis
+* Parameter calibration
+* Maximum-likelihood estimation
+* Numerical optimization
+* Automatic differentiation
+* Adjoint differentiation
+* Sensitivity analysis
+* Bayesian inference
+* MCMC
+* Hamiltonian Monte Carlo
+* Hidden-state estimation
+* Kalman filtering
+* Particle filtering
+* Scenario analysis
+* Stress testing
+* Monte Carlo simulation
+* Variance reduction
+* Quasi-Monte Carlo
+* Multilevel Monte Carlo
+* Rare-event estimation
+* Tail analysis
+* Proper orthogonal decomposition
+* Reduced-order modeling
+* Surrogate modeling
+* Multithreading
+* CUDA
+* MPI
+* Profiling
+* Performance engineering
+* Data management
+* Numerical testing
+* Statistical testing
+* Scientific verification
+* Technical communication
+
+---
+
+# Most Important Priorities
+
+The project should prioritize depth, correctness, and measured evidence over superficial feature count.
+
+The most important capabilities are:
+
+1. Correct and validated stochastic turbulence simulation
+2. Genuine parameter calibration
+3. Clear likelihood and objective construction
+4. Reliable numerical optimization
+5. Verified gradients and sensitivities
+6. Bayesian parameter inference
+7. Hidden-state estimation
+8. Monte Carlo uncertainty propagation
+9. Validated reduced-order modeling
+10. High-performance repeated evaluation
+11. Numerical and statistical testing
+12. Reproducible performance evidence
+
+Incomplete placeholder modules must not be advertised as completed features.
+
+---
+
+# Final Definition
+
+The High-Performance Stochastic Turbulence Calibration Engine is a production-oriented C++20/CUDA framework for solving an inverse stochastic fluid-dynamics problem while developing the methods and engineering practices used in financial quantitative C++ systems.
+
+It simulates two-dimensional stochastically forced turbulence, produces and processes sparse noisy observations, calibrates unknown physical and stochastic parameters, reconstructs hidden states, calculates parameter sensitivities, samples Bayesian posterior distributions, propagates uncertainty through Monte Carlo ensembles, performs scenario and stress analysis, estimates rare extreme events, constructs reduced-order and surrogate models, and accelerates repeated evaluations through CPU parallelism, CUDA, and MPI.
+
+The project should remain scientifically coherent as a fluid-dynamics system while intentionally incorporating as many finance-relevant quantitative methods as naturally fit the problem.
+
+Codex should use this document as the overall project specification and independently determine:
+
+* Software architecture
+* Repository structure
+* Dependency selection
+* Implementation sequence
+* Milestone organization
+* Testing strategy
+* Benchmark strategy
+
+Codex should implement the project incrementally, keep every stage runnable, verify each major component before building upon it, document all mathematical and engineering decisions, and avoid treating untested scaffolding as completed functionality.
+
